@@ -4,6 +4,10 @@
 #include <thrust/execution_policy.h>
 #include "matrix.h"
 
+
+/*
+	CPU Wrapper around matrix_multiply_gpu_fast
+*/
 void matrix_multiply( float *h_A,  float *h_B, float *h_C, int N, int K, int M) {
 	float *d_A, *d_B, *d_B_t, *d_C;
 	cudaMalloc(&d_A, N*K*sizeof(float));
@@ -59,6 +63,13 @@ __global__ void matrix_multiply_gpu(float *A, float *B, float *C, int N, int K, 
 	for (int kk = 0; kk < K; kk++) {
 		C[ii*M + jj] += A[ii*K + kk] * B[kk*M + jj];
 	}
+}
+
+/* Multiplies an NxN matrix with a vector and outputs the vector in c */
+__global__ void matrix_vector_multiply(float *A, float*b, float*c, int N) {
+	int ii = blockIdx.x * blockDim.x + threadIdx.x;
+	if (ii >= N) return;
+	c[ii] = thrust::inner_product(thrust::device, A+ii*N, A+ii*N+N, b, 0.0f);
 }
 
 /*
