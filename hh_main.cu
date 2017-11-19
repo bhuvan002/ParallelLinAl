@@ -53,13 +53,13 @@ void hh_cpu(float *A, int M, int N, float *Q, float *R) {
 		scalar_mul(w, tau_w, tau, M-j, 1);
 		matrix_multiply(tau_w, w_t_R, (float *) R_rhs, M-j, 1, N);
 		matrix_sub((float *) R_sub, (float *) R_rhs, (float *) R_sub, M-j, N);
-		copy_back_sub_matrix((float *) R, (float *) R_sub, M, N, j, 0);
+		copy_back_sub_matrix((float *) R, (float *) R_sub, M, N, j, 0, M-1, N-1);
 
 		// Q(:,j:end) = Q(:,j:end)-(Q(:,j:end)*w)*(tau*w)’;
 		matrix_multiply((float *) Q_sub, w, (float *) Q_w, M, M-j, 1);
 		matrix_multiply((float *) Q_w, tau_w, (float *) Q_rhs, M, 1, M-j);
 		matrix_sub((float *) Q_sub, (float *) Q_rhs, (float *) Q_sub, M, M-j);
-		copy_back_sub_matrix((float *) Q, (float *) Q_sub, M, M, 0, j);
+		copy_back_sub_matrix((float *) Q, (float *) Q_sub, M, M, 0, j, M-1, M-1);
 	}
 }
 
