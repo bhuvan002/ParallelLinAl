@@ -18,6 +18,18 @@ inv_main: inv_main.o matrix.o ge_gpu.o mat_utils.o inv_gpu.o
 inv_gpu.o: inv_gpu.cu
 	nvcc $(CFLAGS) -c inv_gpu.cu
 
+givens: test_givens.o matrix.o givens.o
+	nvcc $(CFLAGS) test_givens.o matrix.o givens.o -o givens
+
+givens.o: givens.cu
+	nvcc $(CFLAGS) -c givens.cu
+
+test_givens.o: test_givens.cu
+	nvcc $(CFLAGS) -c test_givens.cu
+
+ge_main: ge_main.o matrix.o
+	nvcc ge_main.o matrix.o
+
 ge_main.o: ge_main.cu
 	nvcc $(CFLAGS) -c ge_main.cu
 
