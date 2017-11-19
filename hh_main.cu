@@ -8,11 +8,6 @@
 
 void hh_gpu(float *A, int M, int N, float *Q, float *R) {
 
-	if (1) {
-		givens_rotation(A, Q, R, M, N);
-		return;
-	}
-
 	for (int i=0; i<M; i++) {
 		for (int i=0; i<M; i++) {
 			Q[idx(i,i,M)] = 0;
@@ -54,6 +49,11 @@ void hh_gpu(float *A, int M, int N, float *Q, float *R) {
 
 		copy_sub_matrix((float *) R, (float *) R_sub, M, N, j, 0);
 		copy_sub_matrix((float *) Q, (float *) Q_sub, M, M, 0, j);
+
+		if (1) {
+			givens_rotation(A, Q, R, M, N);
+			return;
+		}
 
 		// R(j:end,:) = R(j:end,:)-(tau*w)*(w’*R(j:end,:));
 		matrix_multiply(w, (float *) R_sub, (float *) w_t_R, 1, M-j, N);
