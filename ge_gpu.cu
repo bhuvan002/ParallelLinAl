@@ -1,4 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <iostream>
+#include <thrust/extrema.h>
+#include <thrust/device_vector.h>
+#include <thrust/execution_policy.h>
+#include <thrust/fill.h>
+#include <thrust/copy.h>
+#include "mat_utils.h"
+#include "matrix.h"
 
 template <typename T>
 struct absolute {
@@ -46,7 +56,7 @@ void reduce_rhs(float *A, int N, int M, int i, float *X) {
 	X -> 1-d array, host alloc'ed
 	solve -> 1 if h_x is not null
 */
-void ge_parallel(float *h_A, float *h_row_echelon_A, int N, int M, float *X) {
+void ge_parallel(float *h_A, float *h_row_echelon_A, int N, int M, float *X, int reduced) {
 	float *d_A;
 	float *d_A_t; // M*N matrix
 	float *d_ratio;
@@ -140,6 +150,25 @@ void ge_parallel(float *h_A, float *h_row_echelon_A, int N, int M, float *X) {
 			X[i] = th_A[idx(i,N,M)]/th_A[idx(i,i,M)];
 			reduce_rhs<<<num_blocks(i,512), 512>>>(d_A, N, M, i, X);
 			cudaDeviceSynchronize();
+		}
+	}
+
+	if (reduced) {
+
+		float X[N][M-N];
+		for (int i=N-1; i>=0; i--) {
+			for (int j=0; j<M-N; j++) {
+				h_row_echelon_A[idx(i,N+j,M)] /= h_row_echelon_A[idx(i,i,M)];
+				X[i][j] = h_row_echelon_A[idx(i,N+j,M)];
+
+			}
+			h_row_echelon_A[idx(i,i,M)] = 1;
+			for (int k=i-1; k>=0; k--) {
+				for (int j=0; j<M-N; j++) {
+					h_row_echelon_A[idx(k,N+j,M)] -= h_row_echelon_A[idx(k,i,M)] * X[i][j];
+				}
+				h_row_echelon_A[idx(k,i,M)] = 0;
+			}
 		}
 	}
 

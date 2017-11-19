@@ -19,7 +19,7 @@
 	modifies "a" in place
 	transforms the matrix into it's row echelon form
 */
-void ge_cpu(float *a, float *re_a, int N, int M, float *x) {
+void ge_cpu(float *a, float *re_a, int N, int M, float *x, int reduced) {
 	float max_elem;
 	int max_row;
 
@@ -67,6 +67,24 @@ void ge_cpu(float *a, float *re_a, int N, int M, float *x) {
 			}
 		}
 	}
+
+	if (reduced) {
+		float X[N][M-N];
+		for (int i=N-1; i>=0; i--) {
+			for (int j=0; j<M-N; j++) {
+				re_a[idx(i,N+j,M)] /= re_a[idx(i,i,M)];
+				X[i][j] = re_a[idx(i,N+j,M)];
+
+			}
+			re_a[idx(i,i,M)] = 1;
+			for (int k=i-1; k>=0; k--) {
+				for (int j=0; j<M-N; j++) {
+					re_a[idx(k,N+j,M)] -= re_a[idx(k,i,M)] * X[i][j];
+				}
+				re_a[idx(k,i,M)] = 0;
+			}
+		}
+	}
 }
 
 
@@ -86,11 +104,11 @@ int main() {
 		}
 	}
 
-	if (1) {
-		ge_cpu((float *) A, (float *) row_echelon_A, N, M, NULL);
+	if (0) {
+		ge_cpu((float *) A, (float *) row_echelon_A, N, M, NULL, 1);
 	}
 
-	if (1) {
+	if (0) {
 		for (int i=0; i<N; i++) {
 			for (int j=0; j<M; j++) {
 				printf("%f ", row_echelon_A[i][j]);
@@ -100,7 +118,7 @@ int main() {
 	}
 
 	if (1) {
-		ge_parallel((float *) A, (float *) row_echelon_A, N, M, X);
+		ge_parallel((float *) A, (float *) row_echelon_A, N, M, NULL, 1);
 		cudaDeviceSynchronize();
 	}
 

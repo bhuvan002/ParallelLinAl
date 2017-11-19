@@ -110,7 +110,7 @@ void matrix_sub(float *h_A, float *h_B, float *h_C, int M, int N) {
 
 	dim3 threads(16, 16);
 	dim3 blocks((M+15)/16, (N+15)/16);
-	matrix_transpose_gpu<<<blocks, threads>>>(d_A, d_B, d_C, M, N);
+	matrix_sub_gpu<<<blocks, threads>>>(d_A, d_B, d_C, M, N);
 	cudaDeviceSynchronize();
 
 	cudaMemcpy(h_C, d_C, M*N*sizeof(float), cudaMemcpyDeviceToHost);

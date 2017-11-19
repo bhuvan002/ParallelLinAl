@@ -3,59 +3,35 @@
 #include <stdlib.h>
 #include <math.h>
 #include "matrix.h"
-
-void copy_sub_matrix(float *A, float *sub_A, int M, int N, int r, int c) {
-	int sub_M = M-r;
-	int sub_N = N-c;
-
-	for (int i=r; i<M; i++) {
-		for (int j=c; j<N; j++) {
-			sub_A[idx(i-r,j-c,sub_N)] = A[idx(i,j,N)];
-		}
-	}
-}
-
-void copy_back_sub_matrix(float *A, float *sub_A, int M, int N, int r, int c) {
-	int sub_M = M-r;
-	int sub_N = N-c;
-
-	for (int i=r; i<M; i++) {
-		for (int j=c; j<N; j++) {
-			A[idx(i,j,N)] = sub_A[idx(i-r,j-c,sub_N)];
-		}
-	}
-}
-
-void scalar_mul(float *A, float *scaled_A, int scalar, int M, int N) {
-	for (int i=0; i<M; i++) {
-		for (int j=0; j<N; j++) {
-			scaled_A[idx(i,j,N)] = A[idx(i,j,N)] * scalar;
-		}
-	}
-}
+#include "mat_utils.h"
 
 void hh_cpu(float *A, int M, int N, float *Q, float *R) {
 	for (int i=0; i<M; i++) {
-		Q[i][i] = 0;
+		for (int i=0; i<M; i++) {
+			Q[idx(i,i,M)] = 0;
+		}
+	}
+	for (int i=0; i<M; i++) {
+		Q[idx(i,i,M)] = 1;
 	}
 	memcpy(R, A, M*N*sizeof(float));
 
 	float normx, u1, tau;
 	int s;
-	float w[M]; // M-j+1
 
 	for (int j=0; j<N; j++) {
-		normx = 0
+		normx = 0;
 		for (int i=j; i<M; i++) {
-			normx += R[i][j]*R[i][j];
+			int num = R[idx(i,j,N)];
+			normx += num*num;
 		}
 		normx = sqrt(normx);
-		s = -((R[j][j]<0)?-1:1);
-		u1 = R[j][j] - s*normx;
+		s = -((R[idx(j,j,N)]<0)?-1:1);
+		u1 = R[idx(j,j,N)] - s*normx;
 
 		float w[M-j];
 		for (int i=j; i<M; i++) {
-			w[i-j] = R[i][j]/u1;
+			w[i-j] = R[idx(i,j,N)]/u1;
 		}
 		w[0] = 1;
 		tau = -s*u1/normx;
@@ -69,24 +45,55 @@ void hh_cpu(float *A, int M, int N, float *Q, float *R) {
 		float Q_w[M][1];
 		float Q_rhs[M][M-j];
 
-		copy_sub_matrix(R, R_sub, M, N, j, 0);
-		copy_sub_matrix(Q, Q_sub, M, M, 0, j);
+		copy_sub_matrix((float *) R, (float *) R_sub, M, N, j, 0);
+		copy_sub_matrix((float *) Q, (float *) Q_sub, M, M, 0, j);
 
 		// R(j:end,:) = R(j:end,:)-(tau*w)*(w’*R(j:end,:));
 		matrix_multiply(w, (float *) R_sub, (float *) w_t_R, 1, M-j, N);
 		scalar_mul(w, tau_w, tau, M-j, 1);
-		matrix_multiply(tau_w, w_t_R, R_rhs, M-j, 1, N);
-		matrix_sub(R_sub, R_rhs, R_sub, M-j, N);
-		copy_back_sub_matrix(R, R_sub, M, N, j, 0);
+		matrix_multiply(tau_w, w_t_R, (float *) R_rhs, M-j, 1, N);
+		matrix_sub((float *) R_sub, (float *) R_rhs, (float *) R_sub, M-j, N);
+		copy_back_sub_matrix((float *) R, (float *) R_sub, M, N, j, 0);
 
 		// Q(:,j:end) = Q(:,j:end)-(Q(:,j:end)*w)*(tau*w)’;
 		matrix_multiply((float *) Q_sub, w, (float *) Q_w, M, M-j, 1);
-		matrix_multiply((float *) Q_w, taw_w, (float *) Q_rhs, M, 1, M-j);
-		matrix_sub(Q_sub, Q_rhs, Q_sub, M, M-j);
-		copy_back_sub_matrix(Q, Q_sub, M, M, 0, j);
+		matrix_multiply((float *) Q_w, tau_w, (float *) Q_rhs, M, 1, M-j);
+		matrix_sub((float *) Q_sub, (float *) Q_rhs, (float *) Q_sub, M, M-j);
+		copy_back_sub_matrix((float *) Q, (float *) Q_sub, M, M, 0, j);
 	}
 }
 
-void main() {
-	
+int main() {
+	int M, N;
+	scanf("%d %d", &M, &N);
+	float A[M][N];
+	for (int i=0; i<M; i++) {
+		for (int j=0; j<N; j++) {
+			float num;
+			scanf("%f", &num);
+			A[i][j] = num;
+		}
+	}
+
+	float Q[M][M];
+	float R[M][N];
+	hh_cpu((float *) A, M, N, (float *) Q, (float *) R);
+
+	if (1) {
+		printf("Q:\n");
+		for (int i=0; i<M; i++) {
+			for (int j=0; j<M; j++) {
+				printf("%f ", Q[i][j]);
+			}
+			printf("\n");
+		}
+
+		printf("R:\n");
+		for (int i=0; i<M; i++) {
+			for (int j=0; j<N; j++) {
+				printf("%f ", R[i][j]);
+			}
+			printf("\n");
+		}
+	}
 }
