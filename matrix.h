@@ -3,3 +3,4 @@ __global__ void matrix_multiply_gpu_fast(float *A,  float *B_t, float *C, int N,
 __global__ void matrix_multiply_gpu(float *A,  float *B, float *C, int N, int K, int M);
 __global__ void matrix_transpose_gpu(float *A, float *A_t, int N, int M);
 __global__ void matrix_vector_multiply(float *A, float*b, float*c, int N);
+__global__ void identity(float *A, int N);

@@ -6,6 +6,15 @@ conjgrad: test_conjgrad.o matrix.o conjgrad.o
 matrix: test_matrix.o matrix.o
 	nvcc $(CFLAGS) test_matrix.o matrix.o -o matrix
 
+givens: test_givens.o matrix.o givens.o
+	nvcc $(CFLAGS) test_givens.o matrix.o givens.o -o givens
+
+givens.o: givens.cu
+	nvcc $(CFLAGS) -c givens.cu
+
+test_givens.o: test_givens.cu
+	nvcc $(CFLAGS) -c test_givens.cu
+
 ge_main: ge_main.o matrix.o
 	nvcc ge_main.o matrix.o
 

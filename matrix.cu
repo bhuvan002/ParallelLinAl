@@ -83,3 +83,16 @@ __global__ void matrix_transpose_gpu(float *A, float *A_t, int N, int M) {
 	if (ii >= N || jj >= M) return;
 	A_t[jj*N + ii] =A[ii*M + jj];
 }
+
+/* 
+	Initializes matrix to identity matrix
+	of dimension N x N
+*/
+
+__global__ void identity(float *A, int N) {
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	int j = blockIdx.y * blockDim.y + threadIdx.y;
+	if (i >= N || j >= N) return;
+	if (i == j) A[i*N + j] = 1.0f;
+	else A[i*N + j] = 0.0f;
+}
