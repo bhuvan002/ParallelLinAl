@@ -4,8 +4,15 @@
 #include <math.h>
 #include "matrix.h"
 #include "mat_utils.h"
+#include "givens.h"
 
-void hh_cpu(float *A, int M, int N, float *Q, float *R) {
+void hh_gpu(float *A, int M, int N, float *Q, float *R) {
+
+	if (1) {
+		givens_rotation(A, Q, R, M, N);
+		return;
+	}
+
 	for (int i=0; i<M; i++) {
 		for (int i=0; i<M; i++) {
 			Q[idx(i,i,M)] = 0;
@@ -77,7 +84,7 @@ int main() {
 
 	float Q[M][M];
 	float R[M][N];
-	hh_cpu((float *) A, M, N, (float *) Q, (float *) R);
+	hh_gpu((float *) A, M, N, (float *) Q, (float *) R);
 
 	if (1) {
 		printf("Q:\n");

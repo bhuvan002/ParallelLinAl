@@ -9,8 +9,8 @@ matrix: test_matrix.o matrix.o
 ge_main: ge_main.o matrix.o mat_utils.o
 	nvcc $(CFLAGS) ge_main.o matrix.o mat_utils.o -o ge_main
 
-hh_main: hh_main.o matrix.o mat_utils.o
-	nvcc $(CFLAGS) hh_main.o matrix.o mat_utils.o -o hh_main
+hh_main: hh_main.o matrix.o mat_utils.o givens.o
+	nvcc $(CFLAGS) hh_main.o matrix.o mat_utils.o givens.o -o hh_main
 
 inv_main: inv_main.o matrix.o ge_gpu.o mat_utils.o inv_gpu.o
 	nvcc $(CFLAGS) inv_main.o matrix.o ge_gpu.o mat_utils.o inv_gpu.o -o inv_main
