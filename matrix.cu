@@ -3,6 +3,7 @@
 #include <thrust/inner_product.h>
 #include <thrust/execution_policy.h>
 #include "matrix.h"
+#include "mat_utils.h"
 
 void matrix_multiply( float *h_A,  float *h_B, float *h_C, int N, int K, int M) {
 	float *d_A, *d_B, *d_B_t, *d_C;
@@ -71,4 +72,39 @@ __global__ void matrix_transpose_gpu(float *A, float *A_t, int N, int M) {
 	int jj = blockIdx.y * blockDim.y + threadIdx.y;
 	if (ii >= N || jj >= M) return;
 	A_t[jj*N + ii] =A[ii*M + jj];
+}
+
+
+__global__ void matrix_sub_gpu(float *A, float *B, float *C, int M, int N) {
+	int ii = blockIdx.x * blockDim.x + threadIdx.x;
+	int jj = blockIdx.y * blockDim.y + threadIdx.y;
+	if (ii >= M || jj >= N) return;
+
+	int pos = idx(ii,jj,N);
+	C[pos] = A[pos] - B[pos];
+}
+
+/*
+	Stores A-B (MxN) in C	
+*/
+void matrix_sub(float *h_A, float *h_B, float *h_C, int M, int N) {
+	float *d_A, *d_B, *d_C;
+
+	cudaMalloc(&d_A, M*N*sizeof(float));
+	cudaMalloc(&d_B, M*N*sizeof(float));
+	cudaMalloc(&d_C, M*N*sizeof(float));
+
+	cudaMemcpy(d_A, h_A, M*N*sizeof(float), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_B, h_B, M*N*sizeof(float), cudaMemcpyHostToDevice);
+
+	dim3 threads(16, 16);
+	dim3 blocks((M+15)/16, (N+15)/16);
+	matrix_transpose_gpu<<<blocks, threads>>>(d_A, d_B, d_C, M, N);
+	cudaDeviceSynchronize();
+
+	cudaMemcpy(h_C, d_C, M*N*sizeof(float), cudaMemcpyDeviceToHost);
+
+	cudaFree(d_A);
+	cudaFree(d_B);
+	cudaFree(d_C);
 }
