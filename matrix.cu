@@ -119,3 +119,16 @@ void matrix_sub(float *h_A, float *h_B, float *h_C, int M, int N) {
 	cudaFree(d_B);
 	cudaFree(d_C);
 }
+
+/* 
+	Initializes matrix to identity matrix
+	of dimension N x N
+*/
+
+__global__ void identity(float *A, int N) {
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	int j = blockIdx.y * blockDim.y + threadIdx.y;
+	if (i >= N || j >= N) return;
+	if (i == j) A[i*N + j] = 1.0f;
+	else A[i*N + j] = 0.0f;
+}
