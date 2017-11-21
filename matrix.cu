@@ -2,6 +2,7 @@
 #include <thrust/device_ptr.h>
 #include <thrust/inner_product.h>
 #include <thrust/execution_policy.h>
+#include <cmath>
 #include "matrix.h"
 #include "mat_utils.h"
 
@@ -131,4 +132,18 @@ __global__ void identity(float *A, int N) {
 	if (i >= N || j >= N) return;
 	if (i == j) A[i*N + j] = 1.0f;
 	else A[i*N + j] = 0.0f;
+}
+
+/*
+	A -> M*N
+	vec -> M
+	Copy a column in a matrix into a vector
+	Can be used to find column maximum using thrust::find_max
+*/
+__global__
+void copy_abs_col_to_vec(float *A, float *vec, int M, int N, int col) {
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	if (tid >= M) return;
+
+	vec[tid] = fabs(A[idx(tid,col,N)]);
 }

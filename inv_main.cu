@@ -9,7 +9,7 @@ using namespace std;
 
 int main() {
 	int M;
-	scanf("%d %d", &M, &M);
+	scanf("%d", &M);
 	float A[M][M];
 
 	for (int i=0; i<M; i++) {

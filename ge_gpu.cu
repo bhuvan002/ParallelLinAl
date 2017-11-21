@@ -7,16 +7,22 @@
 #include <thrust/execution_policy.h>
 #include <thrust/fill.h>
 #include <thrust/copy.h>
+#include <thrust/transform.h>
 #include "mat_utils.h"
 #include "matrix.h"
+
+
+using namespace std;
 
 template <typename T>
 struct absolute {
 
 	__device__
-	void operator()(T &x) const {
+	T operator()(T &x) const {
 		if (x < 0) {
-			x = -x;
+			return -x;
+		} else {
+			return x;
 		}
 	}
 };
@@ -58,35 +64,32 @@ void reduce_rhs(float *A, int N, int M, int i, float *X) {
 */
 void ge_parallel(float *h_A, float *h_row_echelon_A, int N, int M, float *X, int reduced) {
 	float *d_A;
-	float *d_A_t; // M*N matrix
+	float *d_vec; // N-dim
 	float *d_ratio;
 
 	cudaMalloc(&d_A, N*M*sizeof(float));
-	cudaMalloc(&d_A_t, M*N*sizeof(float));
+	cudaMalloc(&d_vec, N*sizeof(float));
 	cudaMalloc(&d_ratio, N*sizeof(float));
 
 	cudaMemcpy(d_A, h_A, N*M*sizeof(float), cudaMemcpyHostToDevice);
 
 	dim3 threads(16, 16);
 	dim3 blocks((N+15)/16, (M+15)/16);
-	matrix_transpose_gpu<<<blocks, threads>>>(d_A, d_A_t, N, M);
 
 	cudaDeviceSynchronize();
 
 	if (0) {
-		float h_A_t[M][N];
-		cudaMemcpy(&h_A_t[0][0], d_A_t, M*N*sizeof(float), cudaMemcpyDeviceToHost);
+		float h_vec[N];
+		cudaMemcpy(&h_vec[0], d_vec, N*sizeof(float), cudaMemcpyDeviceToHost);
 
-		for (int i=0; i<M; i++) {
-			for (int j=0; j<N; j++) {
-				printf("%f ", h_A_t[i][j]);
-			}
-			printf("\n");
+		for (int j=0; j<N; j++) {
+			printf("%f ", h_vec[j]);
 		}
+		printf("\n");
 	}
 
 	thrust::device_ptr<float> th_A = thrust::device_pointer_cast(d_A);
-	thrust::device_ptr<float> th_A_t = thrust::device_pointer_cast(d_A_t);
+	thrust::device_ptr<float> th_vec = thrust::device_pointer_cast(d_vec);
 
 	thrust::device_ptr<float> th_x = thrust::device_pointer_cast(X);
 
@@ -96,18 +99,16 @@ void ge_parallel(float *h_A, float *h_row_echelon_A, int N, int M, float *X, int
 	int max_row;
 	for (int i=0; i<N; i++) {
 		// Search for maximum in the ith column
-
-		thrust::for_each(thrust::device, th_A_t+idx(i,i,N), th_A_t+idx(i+1,0,N), absolute<float>());
+		copy_abs_col_to_vec<<<num_blocks(N,512),512>>>(d_A, d_vec, N, M, i);
 		cudaDeviceSynchronize();
 
-		// thrust::copy(th_A_t+idx(i,i,N), th_A_t+idx(i,0,N)+N, std::ostream_iterator<int>(std::cout, "\n"));
+		// thrust::copy(th_vec+idx(i,i,N), th_vec+idx(i,0,N)+N, std::ostream_iterator<int>(std::cout, "\n"));
 
 		thrust::device_vector<float>::iterator iter = 
-			thrust::max_element(thrust::device, th_A_t+idx(i,i,N), th_A_t+idx(i+1,0,N));
+			thrust::max_element(thrust::device, th_vec+i, th_vec+N);
 		cudaDeviceSynchronize();
 
-		max_row = thrust::device_pointer_cast(&(iter[0]))-(th_A_t+idx(i,0,N));
-
+		max_row = thrust::device_pointer_cast(&(iter[0]))-(th_vec);
 
 		// Swap ith row with the maximum row (for numerical stability)
 		thrust::copy(thrust::device, th_A+idx(i,0,M), th_A+idx(i+1,0,M), tmp.begin());
@@ -173,6 +174,6 @@ void ge_parallel(float *h_A, float *h_row_echelon_A, int N, int M, float *X, int
 	}
 
 	cudaFree(d_A);
-	cudaFree(d_A_t);
+	cudaFree(d_vec);
 	cudaFree(d_ratio);
 }

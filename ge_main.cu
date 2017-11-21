@@ -104,8 +104,8 @@ int main() {
 		}
 	}
 
-	if (1) {
-		ge_cpu((float *) A, (float *) row_echelon_A, N, M, NULL, 1);
+	if (0) {
+		ge_cpu((float *) A, (float *) row_echelon_A, N, M, NULL, 0);
 	}
 
 	if (0) {
@@ -118,11 +118,11 @@ int main() {
 	}
 
 	if (1) {
-		ge_parallel((float *) A, (float *) row_echelon_A, N, M, NULL, 1);
+		ge_parallel((float *) A, (float *) row_echelon_A, N, M, X, 0);
 		cudaDeviceSynchronize();
 	}
 
-	if (1) {
+	if (0) {
 		for (int i=0; i<N; i++) {
 			for (int j=0; j<M; j++) {
 				printf("%f ", row_echelon_A[i][j]);

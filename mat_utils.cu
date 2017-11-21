@@ -1,14 +1,5 @@
 #include <stdio.h>
-
-__device__ __host__
-inline int idx(int x, int y, int num_cols) {
-	return x*num_cols+y;
-}
-
-__device__ __host__ 
-inline int num_blocks(int tot_threads, int t_per_b) {
-	return (tot_threads+t_per_b-1)/t_per_b;
-}
+#include "mat_utils.h"
 
 void copy_sub_matrix(float *A, float *sub_A, int M, int N, int r, int c) {
 	// int sub_M = M-r;
@@ -55,4 +46,11 @@ void print_mat(float *A, int M, int N) {
 		}
 		printf("\n");
 	}
+}
+
+void print_d_mat(float *d_A, int M, int N) {
+	float h_A[M*N];
+	cudaMemcpy(h_A, d_A, M*N*sizeof(float), cudaMemcpyDeviceToHost);
+
+	print_mat(h_A, M, N);
 }

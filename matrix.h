@@ -8,5 +8,6 @@ __global__ void matrix_multiply_gpu(float *A,  float *B, float *C, int N, int K,
 __global__ void matrix_transpose_gpu(float *A, float *A_t, int N, int M);
 __global__ void matrix_vector_multiply(float *A, float*b, float*c, int N);
 __global__ void matrix_sub_gpu(float *A, float *B, float *C, int M, int N);
+__global__ void copy_abs_col_to_vec(float *A, float *vec, int M, int N, int col);
 __global__ void identity(float *A, int N);
 #endif
