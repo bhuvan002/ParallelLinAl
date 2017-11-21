@@ -18,7 +18,7 @@ int main() {
 		scanf("%d", &N);
 	}
 
-	// Read square matrix, append rand vector
+	// Read square matrix, append rand vector for solving linear equations
 	if (false) {
 		scanf("%d", &N);
 		float A[N][N];
@@ -51,6 +51,22 @@ int main() {
 			for (int i=0; i<N; i++) {
 				printf("%f\n", rand_float());
 			}
+		}
+	}
+
+	// Upper triangular matrix
+	if (true) {
+		scanf("%d %d", &M, &N);
+		printf("%d %d\n", M, N);
+		for (int i=0; i<M; i++) {
+			for (int j=0; j<N; j++) {
+				if (j >= i) {
+					printf("%f ", rand_float());
+				} else {
+					printf("0 ");
+				}
+			}
+			printf("\n");
 		}
 	}
 
@@ -89,7 +105,7 @@ int main() {
 	}
 
 	// Identity matrix with (N, N) instead of N
-	if (true) {
+	if (false) {
 		scanf("%d", &N);
 		printf("%d %d\n", N, N);
 		for (int i=0; i<N; i++) {
