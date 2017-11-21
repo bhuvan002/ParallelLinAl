@@ -27,9 +27,6 @@ givens.o: givens.cu
 test_givens.o: test_givens.cu
 	nvcc $(CFLAGS) -c test_givens.cu
 
-ge_main: ge_main.o matrix.o
-	nvcc ge_main.o matrix.o
-
 ge_main.o: ge_main.cu
 	nvcc $(CFLAGS) -c ge_main.cu
 
