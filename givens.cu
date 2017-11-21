@@ -72,6 +72,9 @@ void givens_rotation(float *A, float *Q, float *R, int M, int N) {
 
 			// TODO
 			//printf("a = %f, b = %f\n", a, b);
+			if (b == 0.0f) {
+				continue;
+			}
 
 			float c, s, r;
 			givens(a, b, &c, &s, &r);
