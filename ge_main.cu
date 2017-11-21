@@ -9,7 +9,7 @@
 #include <thrust/copy.h>
 #include "mat_utils.h"
 #include "matrix.h"
-#include "ge_gpu.cu"
+#include "ge_gpu.h"
 
 #define P printf("line: %d\n", __LINE__);
 
@@ -104,7 +104,7 @@ int main() {
 		}
 	}
 
-	if (0) {
+	if (1) {
 		ge_cpu((float *) A, (float *) row_echelon_A, N, M, NULL, 1);
 	}
 

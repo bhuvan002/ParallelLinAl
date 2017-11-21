@@ -6,8 +6,8 @@ conjgrad: test_conjgrad.o matrix.o conjgrad.o
 matrix: test_matrix.o matrix.o
 	nvcc $(CFLAGS) test_matrix.o matrix.o -o matrix
 
-ge_main: ge_main.o matrix.o mat_utils.o
-	nvcc $(CFLAGS) ge_main.o matrix.o mat_utils.o -o ge_main
+ge_main: ge_main.o matrix.o mat_utils.o ge_gpu.o
+	nvcc $(CFLAGS) ge_main.o matrix.o mat_utils.o ge_gpu.o -o ge_main
 
 hh_main: hh_main.o matrix.o mat_utils.o givens.o
 	nvcc $(CFLAGS) hh_main.o matrix.o mat_utils.o givens.o -o hh_main
